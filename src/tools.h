@@ -27,7 +27,7 @@ namespace Tools {
     /**
     * A helper method to convert carthesian coordinates + carthesian speed from state to polar coordinates + rho_dot
     */
-    VectorXd CartesianToPolar(double px, const double py, const double vx, const double vy);
+    VectorXd CartesianToPolar(double px, double py, double vx, double vy);
 };
 
 #endif /* TOOLS_H_ */

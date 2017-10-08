@@ -12,11 +12,13 @@ using json = nlohmann::json;
 // else the empty string "" will be returned.
 std::string hasData(const std::string &s) {
     auto found_null = s.find("null");
-    auto b1 = s.find_first_of('[');
-    auto b2 = s.find_first_of(']');
     if (found_null != std::string::npos) {
         return "";
-    } else if (b1 != std::string::npos && b2 != std::string::npos) {
+    }
+
+    auto b1 = s.find_first_of('[');
+    auto b2 = s.find_first_of(']');
+    if (b1 != std::string::npos && b2 != std::string::npos) {
         return s.substr(b1, b2 - b1 + 1);
     }
     return "";
@@ -130,12 +132,12 @@ int main() {
                     msgJson["rmse_vy"] = RMSE(3);
 
                     // check Accuracy
-                    if (RMSE(0)>0.11) std::cout << "[0]:"<< RMSE(0) << std::endl;
-                    if (RMSE(1)>0.11) std::cout << "[1]:"<< RMSE(1)<< std::endl;
+                    if (RMSE(0)>0.11) std::cout << "dX:"<< RMSE(0) << std::endl;
+                    if (RMSE(1)>0.11) std::cout << "dY:"<< RMSE(1)<< std::endl;
 
 
-                    if (RMSE(2)>0.52) std::cout << "[2]:"<< RMSE(2)<< std::endl;
-                    if (RMSE(3)>0.52) std::cout << "[3]:"<< RMSE(3)<< std::endl;
+                    if (RMSE(2)>0.52) std::cout << "dVx:"<< RMSE(2)<< std::endl;
+                    if (RMSE(3)>0.52) std::cout << "dVy:"<< RMSE(3)<< std::endl;
 
                     auto msg = "42[\"estimate_marker\"," + msgJson.dump() + "]";
                     //std::cout << msg << std::endl;

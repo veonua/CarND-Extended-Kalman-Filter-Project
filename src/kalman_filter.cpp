@@ -1,4 +1,5 @@
 #include "kalman_filter.h"
+#include "tools.h"
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -10,56 +11,41 @@ KalmanFilter::KalmanFilter() = default;
 
 KalmanFilter::~KalmanFilter() = default;
 
-void KalmanFilter::Predict() {
+void KalmanFilter::Predict(const Eigen::MatrixXd &F_, const Eigen::MatrixXd &Q_) {
     x_ = F_ * x_;
-    MatrixXd Ft = F_.transpose();
+    auto Ft = F_.transpose();
     P_ = F_ * P_ * Ft + Q_;
 }
 
-void KalmanFilter::Update(const VectorXd &z) {
-    VectorXd z_pred = H_ * x_;
-    VectorXd y = z - z_pred;
+void KalmanFilter::UpdateState(const Eigen::VectorXd &y, const Eigen::MatrixXd &H, const Eigen::MatrixXd &R) {
+    auto Ht = H.transpose();
+    MatrixXd S = H * P_ * Ht + R;
+    MatrixXd K = (P_ * Ht) * S.inverse();
 
-    MatrixXd Ht = H_.transpose();
-    MatrixXd S = H_ * P_ * Ht + R_;
-    MatrixXd Si = S.inverse();
-    MatrixXd PHt = P_ * Ht;
-    MatrixXd K = PHt * Si;
-
-    //new estimate
+    // Update state + state covariance
     x_ = x_ + (K * y);
-    long x_size = x_.size();
-    MatrixXd I = MatrixXd::Identity(x_size, x_size);
-    P_ = (I - K * H_) * P_;
+    P_ = (I_ - K * H) * P_;
 }
 
-void KalmanFilter::UpdateEKF(const VectorXd &z) {
-    float px = x_(0);
-    float py = x_(1);
-    const float vx = x_(2);
-    const float vy = x_(3);
-    auto rho = sqrt(px * px + py * py);
-    if (rho < .00001) {
-        px += .001;
-        py += .001;
-        rho = sqrt(px * px + py * py);
-    }
-    auto phi = atan2(py, px);
-    auto rhodot = (px * vx + py * vy) / rho;
+void KalmanFilter::Update(const VectorXd &z, const  Eigen::MatrixXd &H, const  Eigen::MatrixXd &R) {
+    auto z_pred = H * x_;
+    auto y = z - z_pred;
 
-    VectorXd z_pred = VectorXd(3);
-    z_pred << rho, phi, rhodot;
+    UpdateState(y, H, R);
+}
+
+void KalmanFilter::UpdateEKF(const Eigen::VectorXd &z, const Eigen::MatrixXd &H, const Eigen::MatrixXd &R) {
+    auto z_pred = Tools::CartesianToPolar(x_(0), x_(1), x_(2), x_(3));
     VectorXd y = z - z_pred;
-    y[1] = atan2(sin(y[1]), cos(y[1]));
-    MatrixXd Ht = H_.transpose();
-    MatrixXd S = H_ * P_ * Ht + R_;
-    MatrixXd Si = S.inverse();
-    MatrixXd PHt = P_ * Ht;
-    MatrixXd K = PHt * Si;
 
-    //new estimate
-    x_ = x_ + (K * y);
-    long x_size = x_.size();
-    MatrixXd I = MatrixXd::Identity(x_size, x_size);
-    P_ = (I - K * H_) * P_;
+    y[1] = atan2(sin(y[1]), cos(y[1])); // angle normalizaton
+    UpdateState(y, H, R);
+}
+
+void KalmanFilter::Init(Eigen::MatrixXd x, Eigen::MatrixXd p) {
+    x_ = x;
+    auto x_size = x.size();
+    I_ = MatrixXd::Identity(x_size, x_size);
+
+    P_ = p;
 }

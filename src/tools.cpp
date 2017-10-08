@@ -35,15 +35,15 @@ namespace Tools {
     MatrixXd CalculateJacobian(const VectorXd &x_state) {
         MatrixXd Hj(3, 4);
         //recover state parameters
-        float px = x_state(0);
-        float py = x_state(1);
-        float vx = x_state(2);
-        float vy = x_state(3);
+        auto px = x_state(0);
+        auto py = x_state(1);
+        auto vx = x_state(2);
+        auto vy = x_state(3);
 
         //pre-compute a set of terms to avoid repeated calculation
-        float c1 = px * px + py * py;
-        float c2 = sqrt(c1);
-        float c3 = (c1 * c2);
+        auto c1 = px * px + py * py;
+        auto c2 = sqrt(c1);
+        auto c3 = (c1 * c2);
 
         //check division by zero
         if (fabs(c1) < 0.0001) {
@@ -60,10 +60,10 @@ namespace Tools {
     }
 
     const VectorXd PolarToCartesian(double rho, double phi, double rhodot) {
-        double px = rho * cos(phi);
-        double py = rho * sin(phi);
-        double vx = rhodot * sin(phi);
-        double vy = rhodot * cos(phi);
+        auto px = rho * cos(phi);
+        auto py = rho * sin(phi);
+        auto vx = rhodot * sin(phi);
+        auto vy = rhodot * cos(phi);
 
         VectorXd result(4);
         result << px, py, vx, vy;
@@ -71,9 +71,9 @@ namespace Tools {
     }
 
     VectorXd CartesianToPolar(double px, double py, double vx, double vy) {
-        double rho = sqrt(px * px + py * py);
-        double phi = atan2(py, px);
-        double rho_dot = (fabs(rho) < 0.0001) ? 0 : (px * vx + py * vy) / rho;
+        auto rho = sqrt(px * px + py * py);
+        auto phi = atan2(py, px);
+        auto rho_dot = (fabs(rho) < 0.0001) ? 0 : (px * vx + py * vy) / rho;
 
         VectorXd polar(3);
         polar << rho, phi, rho_dot;
